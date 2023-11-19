@@ -1,0 +1,46 @@
+import os
+import json
+
+def process_json_file(file_path):
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+
+    killmail_hash = data['killmail_hash']
+    ship_type_id = data['victim']['ship_type_id']
+    solar_system_id = data['solar_system_id']
+
+    items = data['victim']['items']
+    output_rows = []
+
+    for item in items:
+        item_type_id = item['item_type_id']
+        quantity = item.get('quantity_destroyed', item.get('quantity_dropped', 0))
+        output_rows.append((killmail_hash, ship_type_id, solar_system_id, item_type_id, quantity))
+
+    return output_rows
+
+
+def process_directory(directory_path):
+    output_rows = []
+
+    for filename in os.listdir(directory_path):
+        if filename.endswith(".json"):
+            file_path = os.path.join(directory_path, filename)
+            output_rows.extend(process_json_file(file_path))
+
+    return output_rows
+
+
+def write_to_txt(output_rows, output_file_path):
+    with open(output_file_path, 'w') as f:
+        for row in output_rows:
+            f.write(','.join(map(str, row)) + '\n')
+
+
+if __name__ == "__main__":
+    input_directory = "C:/Users/jwmcn/Downloads/killmails112023/killmails"
+
+    output_file = "C:/Users/jwmcn/Downloads/km.txt"
+
+    rows = process_directory(input_directory)
+    write_to_txt(rows, output_file)
